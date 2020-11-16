@@ -4,6 +4,8 @@ Has a method to connect and request data from Open Food Facts API
 
 """
 
+# Comment partager my.conf et chiffrer le mdp ?
+
 # pipenv install
 # pipenv install mysql.connector
 # pipenv shell
