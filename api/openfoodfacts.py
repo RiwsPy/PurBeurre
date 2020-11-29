@@ -16,7 +16,7 @@ def call_api(bdd):
         'action': 'process',
         'tagtype_0': 'categories',
         'tag_contains_0': 'contains',
-        'tag_0': 'Boisson', # à mod
+        'tag_0': 'Boisson', # à mod, quelle catégorie indiquer ?
         'tagtype_1': 'countries',
         'tag_contains_1': 'contains',
         'tag_1': 'France',
@@ -27,7 +27,6 @@ def call_api(bdd):
         'page_size': 20, # possible choice : 20, 50, 100, 250, 500, 1000
         'page': 1,
         'json': True,
-
     }
 
     print("Work in progress")
@@ -37,7 +36,7 @@ def call_api(bdd):
     #    json.dump(results_json, fichier, indent=5)
     #print(results_json)
 
-    columns = ["code", "product_name_fr", "nutrition_grades", "nova_groups", "stores", "categories"]
+    columns = ["code", "product_name_fr", "nova_groups", "nutrition_grades", "stores", "categories"]
 
     for product in results_json["products"]:
         add = True
@@ -51,10 +50,10 @@ def call_api(bdd):
             pro = Product()
             code = pro.add(bdd, save_info)
             cat = Category()
-            list_id_cat = cat.add(bdd, product["categories"])
+            id_cat_set = cat.add(bdd, product["categories"])
 
-            for id_cat in list_id_cat:
+            for id_cat in id_cat_set:
                 bdd.add_assoc_pro_cat(code, id_cat)
 
-
-
+    bdd.execute("ALTER TABLE Products ADD INDEX ind_nova_nutri\
+        (nova_score, nutrition_score)") # index creation

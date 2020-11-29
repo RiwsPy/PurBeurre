@@ -4,12 +4,17 @@
 
 """
 
+from sql import database
 
 class Product:
     def __init__(self):
-        self.code = None
-        self.product_name = None
-        self.product_category = None
-        self.nutrition_score = None
-        self.nova_score = None
-        self.store_name = None
+        pass
+
+    def add(self, bdd, set_info):
+        """
+            add a new product in Product table
+            return: product's code
+            rtype: str
+        """
+
+        return bdd.add_product(set_info)
