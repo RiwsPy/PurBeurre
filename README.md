@@ -16,14 +16,21 @@ For this, it is based on two criteria:
 
 
 Files:
+- api/
+    - locale.py (contains all constants for API)
+    - openfoodfacts.py (contains requests to API)
 - data/
-    - my.conf (user data for connect to database)
+    - category.py (class category)
+    - product.py (class product)
 - interface/
     - interface.py (contains method which allow the user to interact with interface)
-- database.py (connect and request data from Open Food Facts API)
-- main.py (unused)
-- tables_queries.sql (sql queries to create tables in database)
+- sql/
+    - database.py (contains all sql requests)
+    - tables_queries.sql (tables architecture to create tables in database)
+- main.py
+- .env.sample (file to configure SQL connection, NEED to be rename to .env)
 - Pipfile.lock (contains all PurBeurre application dependencies)
+- settings.py (active dotenv package)
 
 
 
