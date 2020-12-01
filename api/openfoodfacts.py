@@ -55,5 +55,4 @@ def call_api(bdd):
             for id_cat in id_cat_set:
                 bdd.add_assoc_pro_cat(code, id_cat)
 
-    bdd.execute("ALTER TABLE Products ADD INDEX ind_nova_nutri\
-        (nova_score, nutrition_score)") # index creation
+    bdd.create_index_nova_nutri_score()

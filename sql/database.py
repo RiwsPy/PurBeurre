@@ -43,10 +43,10 @@ class Database:
         """
         self.execute("USE " + self.bd_name)
 
-        #self.execute("DROP TABLE IF EXISTS Assoc_product_category")
-        #self.execute("DROP TABLE IF EXISTS Favorite_products")
-        #self.execute("DROP TABLE IF EXISTS Products")
-        #self.execute("DROP TABLE IF EXISTS Category")
+        self.execute("DROP TABLE IF EXISTS Assoc_product_category")
+        self.execute("DROP TABLE IF EXISTS Favorite_products")
+        self.execute("DROP TABLE IF EXISTS Products")
+        self.execute("DROP TABLE IF EXISTS Category")
 
         with open(filename, 'r') as bdd:
             sql_queries = bdd.read().split(';')
@@ -132,6 +132,43 @@ class Database:
             VALUES (%s, %s)"
         data_line = (code_pro, cat_id)
         self.execute(add_line, data_line)
+
+    def create_index_nova_nutri_score(self):
+        self.execute("ALTER TABLE Products ADD INDEX ind_nova_nutri\
+            (nova_score, nutrition_score)") # index creation
+
+    def all_categories_name(self):
+        self.execute("SELECT category_name FROM Category")
+        return self.cursor.fetchall()
+
+    def all_products_in_category(self, cat):
+        self.execute("SELECT p.product_name, p.code, p.nova_score, p.nutrition_score, p.store_name\
+            FROM Products AS p\
+            INNER JOIN Assoc_product_category AS a\
+                ON a.code = p.code\
+            WHERE a.id = %s\
+            ORDER BY nova_score ASC, nutrition_score ASC", (cat,))
+        return self.cursor.fetchall()
+
+    """
+    def find_substitute(self, cat):
+
+        self.execute("SELECT code FROM Assoc_product_category WHERE id = %s", (cat,))
+        result = self.cursor.fetchall()
+        print(result)
+        self.execute("SELECT p.* FROM Products AS p\
+            INNER JOIN Assoc_product_category AS a\
+                ON a.code = p.code\
+            WHERE a.id = %s", (cat,))
+        result = self.cursor.fetchall()
+        print(result)
+    """
+
+    def save_product(self, product_code, substitute_code):
+        add_line = "INSERT INTO Favorite_products (code, substitute_code) VALUES (%s, %s)"
+        data_line = (product_code, substitute_code)
+        self.execute(add_line, data_line)
+
 
 if __name__ == "__main__":
     conn = Database()
