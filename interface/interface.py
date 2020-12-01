@@ -6,6 +6,7 @@ Contains all methods which allow the user to interact with PurBeurre interface
 """
 
 import sys
+from api.locale import URL_PRODUCT
 
 class Interface:
     def __init__(self, bdd):
@@ -76,12 +77,11 @@ class Interface:
             print("Aucun produit trouvé.")
             return None
 
-        URL = "https://fr.openfoodfacts.org/product"
         print(f"{self.products_info[0][0]} (code {self.products_info[0][1]})\
             \nScore Nova : {self.products_info[0][2]},\
             \nNutri-Score : {self.products_info[0][3].upper()}\
             \nMagasin(s) : {self.products_info[0][4]}\
-            \nLien OFF : {URL}/{self.products_info[0][1]}")
+            \nLien OFF : {URL_PRODUCT}/{self.products_info[0][1]}")
         save = input("Sauvegarder le résultat ? (o/n)").lower()
         if save == 'o':
             self.bdd.save_product(self.products_info[self.option-1][1], self.products_info[0][1])

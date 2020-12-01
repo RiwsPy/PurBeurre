@@ -8,7 +8,7 @@ import requests
 import json
 from data.product import Product
 from data.category import Category
-from api.locale import HEADERS, URL
+from api.locale import HEADERS, URL_SEARCH
 
 def call_api(bdd):
     headers={"User-Agent":HEADERS}
@@ -30,7 +30,7 @@ def call_api(bdd):
     }
 
     print("Work in progress")
-    req = requests.get(URL, params=payload, headers=headers)
+    req = requests.get(URL_SEARCH, params=payload, headers=headers)
     results_json = req.json()
     #with open('request_save.txt', 'w') as fichier:
     #    json.dump(results_json, fichier, indent=5)

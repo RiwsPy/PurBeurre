@@ -24,11 +24,12 @@ class Database:
         self.cursor = None
 
         if self.init_connection():
+            pass
+            """
             self.create_database()
-            self.execute_sql_file_in_database('tables_queries.sql')
-
-            # rows = cur.fetchall()
-            #self.close_connection()
+            self.clear_all_tables()
+            self.execute_sql_file_in_database('sql/tables_queries.sql')
+            """
 
     def create_database(self):
         self.execute("CREATE DATABASE IF NOT EXISTS " + self.bd_name)
@@ -43,20 +44,20 @@ class Database:
         """
         self.execute("USE " + self.bd_name)
 
-        self.execute("DROP TABLE IF EXISTS Assoc_product_category")
-        self.execute("DROP TABLE IF EXISTS Favorite_products")
-        self.execute("DROP TABLE IF EXISTS Products")
-        self.execute("DROP TABLE IF EXISTS Category")
-
         with open(filename, 'r') as bdd:
             sql_queries = bdd.read().split(';')
 
         for query in sql_queries[:-1]: # last value is ignored
             self.execute(query)
 
-        self.execute("SHOW TABLES") # test
-        return self.cursor.fetchall()
-        #self.cnx.commit()
+    def clear_all_tables(self):
+        """
+            Drop all table in database
+        """
+        self.execute("DROP TABLE IF EXISTS Assoc_product_category")
+        self.execute("DROP TABLE IF EXISTS Favorite_products")
+        self.execute("DROP TABLE IF EXISTS Products")
+        self.execute("DROP TABLE IF EXISTS Category")
 
     def execute(self, query, data = None):
         try:
@@ -100,10 +101,11 @@ class Database:
             return: product code
             rtype: str
         """
-        # vérification de la connection ?
+        # vérification de la connexion ?
         # vérification des informations ?
 
-        add_line = "INSERT INTO Products (code, product_name, nova_score, nutrition_score, store_name) \
+        add_line = "INSERT INTO Products \
+            (code, product_name, nova_score, nutrition_score, store_name) \
             VALUES (%s, %s, %s, %s, %s)"
         data_line = (product[0], product[1], product[2], product[3], product[4])
         self.execute(add_line, data_line)
@@ -117,7 +119,9 @@ class Database:
                 VALUES (%s)"
             data_line = (name[:100],)
             self.execute(add_line, data_line)
-            category_id = self.category_name_to_id(name) # moyen plus rapide ?
+            self.execute("SELECT MAX(id) FROM Category")
+            category_id = self.cursor.fetchall()
+            #category_id = self.category_name_to_id(name) # moyen plus rapide ? > TRIER DESC LIMIT 1 ?
 
         return category_id[0][0]
 
@@ -147,7 +151,7 @@ class Database:
             INNER JOIN Assoc_product_category AS a\
                 ON a.code = p.code\
             WHERE a.id = %s\
-            ORDER BY nova_score ASC, nutrition_score ASC", (cat,))
+            ORDER BY nova_score, nutrition_score, code", (cat,))
         return self.cursor.fetchall()
 
     """
