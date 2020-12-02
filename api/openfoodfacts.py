@@ -5,54 +5,39 @@ Request and import data from Open Food Facts API
 """
 
 import requests
-import json
 from data.product import Product
 from data.category import Category
-from api.locale import HEADERS, URL_SEARCH
+from api.locale import HEADERS, URL_SEARCH, CATEGORIES, PAYLOAD, FIELDS
 
 def call_api(bdd):
     headers={"User-Agent":HEADERS}
-    payload = {
-        'action': 'process',
-        'tagtype_0': 'categories',
-        'tag_contains_0': 'contains',
-        'tag_0': 'Boisson', # à mod, quelle catégorie indiquer ?
-        'tagtype_1': 'countries',
-        'tag_contains_1': 'contains',
-        'tag_1': 'France',
-        'tagtype_2': 'categories_lc',
-        'tag_contains_2': 'contains',
-        'tag_2': 'fr',
-        'sort_by': 'unique_scans_n', # sort by popularity
-        'page_size': 20, # possible choice : 20, 50, 100, 250, 500, 1000
-        'page': 1,
-        'json': True,
-    }
+    code_set = set()
+    print("Mise à jour de la base de données...")
 
-    print("Work in progress")
-    req = requests.get(URL_SEARCH, params=payload, headers=headers)
-    results_json = req.json()
-    #with open('request_save.txt', 'w') as fichier:
-    #    json.dump(results_json, fichier, indent=5)
-    #print(results_json)
+    for index, category in enumerate(CATEGORIES):
+        param = PAYLOAD.copy()
+        param["tag_0"] = category
+        req = requests.get(URL_SEARCH, params=param, headers=headers)
+        results_json = req.json()
 
-    columns = ["code", "product_name_fr", "nova_groups", "nutrition_grades", "stores", "categories"]
+        cat = Category(category, index)
+        cat.add(bdd)        
 
-    for product in results_json["products"]:
-        add = True
-        save_info = []
-        for column_name in columns:
-            if not column_name in product: # parfois les données sont incomplètes, dans ce cas le produit est ignoré
-                add = False
-                break
-            save_info.append(product[column_name])
-        if add:
-            pro = Product()
-            code = pro.add(bdd, save_info)
-            cat = Category()
-            id_cat_set = cat.add(bdd, product["categories"])
+        for product in results_json["products"]:
+            if not product["code"] in code_set:
+                code_set.add(product["code"])
+                add = True
+                save_info = []
+                for field in FIELDS:
+                    if not field in product:
+                        add = False
+                        break
+                    save_info.append(product[field])
 
-            for id_cat in id_cat_set:
-                bdd.add_assoc_pro_cat(code, id_cat)
+                if add: # add a product if it has all fields
+                    pro = Product()
+                    code = pro.add(bdd, save_info)
+
+                    bdd.add_assoc_pro_cat(code, index)
 
     bdd.create_index_nova_nutri_score()

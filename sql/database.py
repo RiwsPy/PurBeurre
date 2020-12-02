@@ -24,12 +24,9 @@ class Database:
         self.cursor = None
 
         if self.init_connection():
-            pass
-            """
             self.create_database()
             self.clear_all_tables()
             self.execute_sql_file_in_database('sql/tables_queries.sql')
-            """
 
     def create_database(self):
         self.execute("CREATE DATABASE IF NOT EXISTS " + self.bd_name)
@@ -112,18 +109,11 @@ class Database:
 
         return product[0] # code
 
-    def add_category(self, name):
-        category_id = self.category_name_to_id(name)
-        if not category_id:
-            add_line = "INSERT INTO Category (category_name) \
-                VALUES (%s)"
-            data_line = (name[:100],)
-            self.execute(add_line, data_line)
-            self.execute("SELECT MAX(id) FROM Category")
-            category_id = self.cursor.fetchall()
-            #category_id = self.category_name_to_id(name) # moyen plus rapide ? > TRIER DESC LIMIT 1 ?
-
-        return category_id[0][0]
+    def add_category(self, name, index):
+        add_line = "INSERT INTO Category (id, category_name) \
+            VALUES (%s, %s)"
+        data_line = (index, name[:100])
+        self.execute(add_line, data_line)
 
     def category_name_to_id(self, name):
         add_line = "SELECT id FROM Category WHERE category_name = %s"

@@ -5,22 +5,14 @@ Class Category
 
 """
 
-from sql import database
-
 class Category:
-    def __init__(self):
-        pass
+    def __init__(self, category_name, index):
+        self.category_name = category_name
+        self.index = index
 
-    def add(self, bdd, categories):
+    def add(self, bdd):
         """
             add a new product in Product table
-            return: set that contains all category id
-            rtype: set
         """
-        list_category = categories.split(",")
-        result_set = set()
-        for name in list_category:
-            id = bdd.add_category(name.lstrip())
-            result_set.add(id)
 
-        return result_set
+        bdd.add_category(self.category_name, self.index)
