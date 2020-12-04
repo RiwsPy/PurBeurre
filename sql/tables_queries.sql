@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS Category(
     PRIMARY KEY(id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS Products(
+CREATE TABLE IF NOT EXISTS Product(
     code VARCHAR(13) NOT NULL,
     product_name VARCHAR(100) NOT NULL,
     nova_score TINYINT UNSIGNED NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Assoc_product_category(
     id TINYINT UNSIGNED NOT NULL,
     CONSTRAINT fk_code
         FOREIGN KEY (code)
-        REFERENCES Products(code)
+        REFERENCES Product(code)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     CONSTRAINT fk_id
@@ -28,18 +28,18 @@ CREATE TABLE IF NOT EXISTS Assoc_product_category(
         ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS Favorite_products(
+CREATE TABLE IF NOT EXISTS Favorite_product(
     code VARCHAR(13) NOT NULL,
     substitute_code VARCHAR(13) NOT NULL,
     PRIMARY KEY(code),
     CONSTRAINT fk_code1
         FOREIGN KEY (code)
-        REFERENCES Products(code)
+        REFERENCES Product(code)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     CONSTRAINT fk_code2
         FOREIGN KEY (substitute_code)
-        REFERENCES Products(code)
+        REFERENCES Product(code)
         ON UPDATE CASCADE
         ON DELETE CASCADE
 ) ENGINE = InnoDB;
