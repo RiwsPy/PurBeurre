@@ -9,6 +9,7 @@ Has a method to connect and request data from sql database
 # pipenv install mysql.connector
 # pipenv shell
 
+
 import mysql.connector
 import os
 import settings
@@ -25,11 +26,14 @@ class Database:
 
         if self.init_connection():
             self.create_database()
+            """
             self.clear_all_tables()
             self.execute_sql_file_in_database('sql/tables_queries.sql')
+            """
 
     def create_database(self):
         self.execute("CREATE DATABASE IF NOT EXISTS " + self.bd_name)
+        self.execute("USE " + self.bd_name)
 
     def execute_sql_file_in_database(self, filename):
         """
@@ -39,7 +43,6 @@ class Database:
             return: query return
             rtype: list
         """
-        self.execute("USE " + self.bd_name)
 
         with open(filename, 'r') as bdd:
             sql_queries = bdd.read().split(';')
@@ -52,15 +55,27 @@ class Database:
             Drop all table in database
         """
         self.execute("DROP TABLE IF EXISTS Assoc_product_category")
-        self.execute("DROP TABLE IF EXISTS Favorite_products")
-        self.execute("DROP TABLE IF EXISTS Products")
+        self.execute("DROP TABLE IF EXISTS Favorite_product")
+        self.execute("DROP TABLE IF EXISTS Product")
         self.execute("DROP TABLE IF EXISTS Category")
 
     def execute(self, query, data = None):
+        # you must commit the data after a sequence of INSERT, DELETE, and UPDATE statements.
+        # See : https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
+
+        need_commit = False
+        first_statement = query.split(" ")[0].upper()
+        if first_statement in ["INSERT", "DELETE", "UPDATE"]:
+            need_commit = True
+
         try:
             self.cursor.execute(query, data)
+            if need_commit:
+                self.cnx.commit()
         except mysql.connector.Error as error:
             print(error)
+            if need_commit:
+                self.cnx.rollback()
             return False
 
         return True
@@ -87,6 +102,7 @@ class Database:
     def close_connection(self):
         """ Close connection """
         print("Déconnexion de la base de données.")
+        self.cursor.close()
         self.cnx.close()
 
     def add_product(self, product):
@@ -101,7 +117,7 @@ class Database:
         # vérification de la connexion ?
         # vérification des informations ?
 
-        add_line = "INSERT INTO Products \
+        add_line = "INSERT INTO Product \
             (code, product_name, nova_score, nutrition_score, store_name) \
             VALUES (%s, %s, %s, %s, %s)"
         data_line = (product[0], product[1], product[2], product[3], product[4])
@@ -128,41 +144,38 @@ class Database:
         self.execute(add_line, data_line)
 
     def create_index_nova_nutri_score(self):
-        self.execute("ALTER TABLE Products ADD INDEX ind_nova_nutri\
+        self.execute("ALTER TABLE Product ADD INDEX ind_nova_nutri\
             (nova_score, nutrition_score)") # index creation
 
     def all_categories_name(self):
         self.execute("SELECT category_name FROM Category")
         return self.cursor.fetchall()
 
+    def all_info_product(self, code_product):
+        add_line = "SELECT product_name, code, nova_score, nutrition_score, store_name\
+        FROM Product WHERE code = %s"
+        data_line = (code_product,)
+        self.execute(add_line, data_line)
+        return self.cursor.fetchall()
+
     def all_products_in_category(self, cat):
         self.execute("SELECT p.product_name, p.code, p.nova_score, p.nutrition_score, p.store_name\
-            FROM Products AS p\
+            FROM Product AS p\
             INNER JOIN Assoc_product_category AS a\
                 ON a.code = p.code\
             WHERE a.id = %s\
             ORDER BY nova_score, nutrition_score, code", (cat,))
         return self.cursor.fetchall()
 
-    """
-    def find_substitute(self, cat):
-
-        self.execute("SELECT code FROM Assoc_product_category WHERE id = %s", (cat,))
-        result = self.cursor.fetchall()
-        print(result)
-        self.execute("SELECT p.* FROM Products AS p\
-            INNER JOIN Assoc_product_category AS a\
-                ON a.code = p.code\
-            WHERE a.id = %s", (cat,))
-        result = self.cursor.fetchall()
-        print(result)
-    """
+    def all_favorite_product(self):
+        add_line = "SELECT code, substitute_code FROM Favorite_product"
+        self.execute(add_line)
+        return self.cursor.fetchall()
 
     def save_product(self, product_code, substitute_code):
-        add_line = "INSERT INTO Favorite_products (code, substitute_code) VALUES (%s, %s)"
+        add_line = "INSERT INTO Favorite_product (code, substitute_code) VALUES (%s, %s)"
         data_line = (product_code, substitute_code)
         self.execute(add_line, data_line)
-
 
 if __name__ == "__main__":
     conn = Database()
