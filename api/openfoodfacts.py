@@ -10,34 +10,33 @@ from data.category import Category
 from api.locale import HEADERS, URL_SEARCH, CATEGORIES, PAYLOAD, FIELDS
 
 def call_api(bdd):
+    """
+        Request Open Food Facts API
+        Save the results in the database
+        param bdd: database
+        type bdd: database.Database
+        return: None
+    """
+
     headers={"User-Agent":HEADERS}
     code_set = set()
     print("Mise à jour de la base de données...")
+    params = PAYLOAD.copy()
 
     for index, category in enumerate(CATEGORIES):
-        param = PAYLOAD.copy()
-        param["tag_0"] = category
-        req = requests.get(URL_SEARCH, params=param, headers=headers)
+        params["tag_0"] = category
+        req = requests.get(URL_SEARCH, params=params, headers=headers)
         results_json = req.json()
 
-        cat = Category(category, index)
-        cat.add(bdd)        
+        cat = Category(bdd, category, index)
+        cat.add()
 
-        for product in results_json["products"]:
-            if not product["code"] in code_set:
-                code_set.add(product["code"])
-                add = True
-                save_info = []
-                for field in FIELDS:
-                    if not field in product:
-                        add = False
-                        break
-                    save_info.append(product[field])
-
-                if add: # add a product if it has all fields
-                    pro = Product()
-                    code = pro.add(bdd, save_info)
-
-                    bdd.add_assoc_pro_cat(code, index)
+        for product_info in results_json["products"]:
+            if not product_info["code"] in code_set:
+                code_set.add(product_info["code"])
+                pro = Product(bdd)
+                pro.cleaner(product_info)
+                pro.add()
+                bdd.add_assoc_pro_cat(pro, index)
 
     bdd.create_index_nova_nutri_score()

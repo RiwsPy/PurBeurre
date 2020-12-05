@@ -32,16 +32,20 @@ class Database:
             """
 
     def create_database(self):
+        """
+            Create local Database and use it
+        """
         self.execute("CREATE DATABASE IF NOT EXISTS " + self.bd_name)
         self.execute("USE " + self.bd_name)
 
     def execute_sql_file_in_database(self, filename):
         """
             Execute filename in database like a SOURCE command
-            param filename: file name to load (must be in the root folder)
-            type filename: str
-            return: query return
-            rtype: list
+
+            *param filename: file name to load
+            *type filename: str
+            *return: query return
+            *rtype: list
         """
 
         with open(filename, 'r') as bdd:
@@ -60,6 +64,18 @@ class Database:
         self.execute("DROP TABLE IF EXISTS Category")
 
     def execute(self, query, data = None):
+        """
+            Execute query in Database with data (facultative)
+            See mysql.connector.connect.execute for more informations
+            Print error, commit or rollback if necessary
+
+            *param query: query to execute
+            *param data: data in query
+            *type query: str
+            *type data: tuple
+            *return: True if the query is valid, False otherwise
+            *rtype: bool
+        """
         # you must commit the data after a sequence of INSERT, DELETE, and UPDATE statements.
         # See : https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
 
@@ -81,7 +97,11 @@ class Database:
         return True
 
     def init_connection(self):
-        """ Open connection """
+        """ Open connection 
+        
+            *return: True if the connection is ok, False otherwise
+            *rtype: bool
+        """
 
         print("Connexion à la base de données.")
 
@@ -108,14 +128,11 @@ class Database:
     def add_product(self, product):
         """
             Add a product in Product table
-            param product: list with 6 parameters :
+
+            *param product: list with 6 parameters :
                 code, product_name, nova_score, nutrition_score, store_name, categories
-            type product: list
-            return: product code
-            rtype: str
+            *type product: list
         """
-        # vérification de la connexion ?
-        # vérification des informations ?
 
         add_line = "INSERT INTO Product \
             (code, product_name, nova_score, nutrition_score, store_name) \
@@ -123,35 +140,66 @@ class Database:
         data_line = (product[0], product[1], product[2], product[3], product[4])
         self.execute(add_line, data_line)
 
-        return product[0] # code
-
     def add_category(self, name, index):
+        """
+            Add a category in Category table
+
+            *param name: category name
+            *param index: category index
+            *type name: str
+            *type index: int
+        """
         add_line = "INSERT INTO Category (id, category_name) \
             VALUES (%s, %s)"
         data_line = (index, name[:100])
         self.execute(add_line, data_line)
 
     def category_name_to_id(self, name):
+        """
+            Selects the id category by its name
+
+            *param name: category name
+            *type name: str
+            *return: query return
+            *rtype: tuple
+        """
         add_line = "SELECT id FROM Category WHERE category_name = %s"
         data_line = (name,)
         self.execute(add_line, data_line)
         return self.cursor.fetchall()
 
-    def add_assoc_pro_cat(self, code_pro, cat_id):
-        add_line = "INSERT INTO Assoc_product_category (code, id) \
-            VALUES (%s, %s)"
-        data_line = (code_pro, cat_id)
-        self.execute(add_line, data_line)
+    def add_assoc_pro_cat(self, product, cat_id):
+        """
+            Insert in table Assoc_product_category the followed parameters
+
+            *param product: product to add
+            *param cat_id: product category identifier
+            *type product: product.Product
+            *type cat_id: int
+        """
+        if product.is_clean:
+            add_line = "INSERT INTO Assoc_product_category (code, id) \
+                VALUES (%s, %s)"
+            data_line = (product.code, cat_id)
+            self.execute(add_line, data_line)
 
     def create_index_nova_nutri_score(self):
+        """
+            Create index between two columns : nova_score and nutrition_score
+            The result is : the sorting is faster
+        """
         self.execute("ALTER TABLE Product ADD INDEX ind_nova_nutri\
-            (nova_score, nutrition_score)") # index creation
-
-    def all_categories_name(self):
-        self.execute("SELECT category_name FROM Category")
-        return self.cursor.fetchall()
+            (nova_score, nutrition_score)")
 
     def all_info_product(self, code_product):
+        """
+            Select and return product informations stored in Product table for one product
+
+            *param code_product: product code to search
+            *type code_product: int
+            *return: product_name, code, nova_score, nutrition_score, store_name of the product
+            *rtype: tuple
+        """
         add_line = "SELECT product_name, code, nova_score, nutrition_score, store_name\
         FROM Product WHERE code = %s"
         data_line = (code_product,)
@@ -159,6 +207,14 @@ class Database:
         return self.cursor.fetchall()
 
     def all_products_in_category(self, cat):
+        """
+            Select and return all products in the category
+
+            *param cat: products category
+            *type cat: int
+            *return: codes of all products
+            *rtype: tuple
+        """
         self.execute("SELECT p.product_name, p.code, p.nova_score, p.nutrition_score, p.store_name\
             FROM Product AS p\
             INNER JOIN Assoc_product_category AS a\
@@ -168,11 +224,24 @@ class Database:
         return self.cursor.fetchall()
 
     def all_favorite_product(self):
+        """
+            Select and return all code product and code of their substitute product
+
+            *rtype: tuple(tuple)
+        """
         add_line = "SELECT code, substitute_code FROM Favorite_product"
         self.execute(add_line)
         return self.cursor.fetchall()
 
     def save_product(self, product_code, substitute_code):
+        """
+            Save in Favorite_product table a product code and the code of this subtitute product
+
+            *param product_code: code product
+            *param substitute_code: code of the subtitute product
+            *type product_code: int
+            *type substitute_code: int
+        """
         add_line = "INSERT INTO Favorite_product (code, substitute_code) VALUES (%s, %s)"
         data_line = (product_code, substitute_code)
         self.execute(add_line, data_line)

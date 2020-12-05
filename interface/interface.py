@@ -6,10 +6,13 @@ Contains all methods which allow the user to interact with PurBeurre interface
 """
 
 import sys
-from api.locale import URL_PRODUCT
+from api.locale import URL_PRODUCT, CATEGORIES
 
 class Interface:
     def __init__(self, bdd):
+        """
+            Interface initialisation
+        """
         self.bdd = bdd
         self.category = None
         self.product = None
@@ -43,22 +46,30 @@ class Interface:
         getattr(self, choices[option][1])()
 
     def show_init_menu(self):
+        """
+            Displays the 'Welcome' menu
+        """
         choices = [
             ["Bienvenue sur PurBeurre, veuillez choisir une option :", 'show_init_menu'],
             ["Je souhaite substituer un produit.", 'show_category_menu'],
-            ["Retrouver mes produits substitués.", 'show_init_menu']]
+            ["Retrouver mes produits substitués.", 'show_favorite_product']]
         self.display_menu(choices)
 
     def show_category_menu(self):
-        categories = self.bdd.all_categories_name()
+        """
+            Displays menu with all cateogry product
+        """
         choices = [
             ["Sélectionnez la catégorie du produit :", 'show_category_menu']]
-        for category in categories:
-            choices.append([category[0], 'show_food_menu'])
+        for category in CATEGORIES:
+            choices.append([category, 'show_food_menu'])
         self.display_menu(choices, 'category')
 
     def show_food_menu(self):
-        cat_id = self.bdd.category_name_to_id(self.category)[0][0]
+        """
+            Displays menu with all products in the category chosen previously
+        """
+        cat_id = self.option-1
         products = self.bdd.all_products_in_category(cat_id)
         self.products_info = products
         choices = [
@@ -70,21 +81,47 @@ class Interface:
     def show_result(self):
         """
             Displays the search result 
-            Results are already sorted
+            Results are already sorted by nova_score and nutrition_score
         """
         print("Résultat :")
         if self.option == 1:
             print("Aucun produit trouvé.")
             return None
 
-        print(f"{self.products_info[0][0]} (code {self.products_info[0][1]})\
-            \nScore Nova : {self.products_info[0][2]},\
-            \nNutri-Score : {self.products_info[0][3].upper()}\
-            \nMagasin(s) : {self.products_info[0][4]}\
-            \nLien OFF : {URL_PRODUCT}/{self.products_info[0][1]}")
+        self.show_product(self.products_info[0][1], self.products_info)
+
         save = input("Sauvegarder le résultat ? (o/n)").lower()
         if save == 'o':
             self.bdd.save_product(self.products_info[self.option-1][1], self.products_info[0][1])
+
+    def show_product(self, code_product, products_info = None):
+        """
+            Display all product informations and API URL
+            Informations can be added directly in parameters (faster)
+
+            *param code_product: product code to display
+            *param products_info: products informations
+            *type code_product: int
+            *type products_info: tuple(tuple)
+        """
+        if not products_info:
+            products_info = self.bdd.all_info_product(code_product)
+
+        print(f"{products_info[0][0]} (code {products_info[0][1]})\
+            \nScore Nova : {products_info[0][2]},\
+            \nNutri-Score : {products_info[0][3].upper()}\
+            \nMagasin(s) : {products_info[0][4]}\
+            \nLien OFF : {URL_PRODUCT}/{products_info[0][1]}")
+
+    def show_favorite_product(self):
+        """
+            Display all favorite products and his substitute
+        """
+        print("Produits favoris :")
+        for couple in self.bdd.all_favorite_product():
+            self.show_product(couple[0])
+            print('Remplacé par :')
+            self.show_product(couple[1])
 
     def check_error(self, answer, nb_choice):
         """
@@ -106,7 +143,8 @@ class Interface:
 
     def quit(self):
         """
-            quit PurBeurre
+            Quit PurBeurre
+
             *return: None
         """
         print("A bientôt sur PurBeurre.")

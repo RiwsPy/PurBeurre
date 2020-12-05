@@ -6,13 +6,24 @@ Class Category
 """
 
 class Category:
-    def __init__(self, category_name, index):
+    def __init__(self, bdd, category_name, index):
+        """
+            Initialize a new Category
+
+            *param bdd: database
+            *param category_name: category name
+            *param index: id number in Category table
+            *type bdd: database.Database
+            *type category_name: str
+            *type index: int
+        """
+        self.bdd = bdd
         self.category_name = category_name
         self.index = index
 
-    def add(self, bdd):
+    def add(self):
         """
-            add a new product in Product table
+            Add a new category in Category table
         """
 
-        bdd.add_category(self.category_name, self.index)
+        self.bdd.add_category(self.category_name, self.index)
