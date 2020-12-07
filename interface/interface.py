@@ -20,39 +20,35 @@ class Interface:
         self.products_info = []
         self.show_init_menu()
 
-    def display_menu(self, choices, attribut = None):
+    def display_menu(self, choices):
         """
             Display header and choices to the PurBeurre's window then lauch the corresponding method
 
             *param choices: [0] : text, [1] : method to apply if the option is chosen
-            *param attribut: if not None, save the user choice in self.attribut
-            *type choices: list
-            *type attribut: str
+            *type choices: list(tuple)
             *return: None
         """
-        choices.append(["Quitter PurBeurre", 'quit'])
+        choices.append(("Quitter PurBeurre", self.quit))
         for index, choice in enumerate(choices):
             if index:
                 print(f"{index}- {choice[0]}")
             else:
+                print("\n" + "*"*len(choice[0]))
                 print(choice[0] + "\n") #  header
 
         option = self.check_error(input(), len(choices)-1)
         self.option = option
 
-        if attribut:
-            setattr(self, attribut, choices[option][0])
-
-        getattr(self, choices[option][1])()
+        choices[option][1]()
 
     def show_init_menu(self):
         """
             Displays the 'Welcome' menu
         """
         choices = [
-            ["Bienvenue sur PurBeurre, veuillez choisir une option :", 'show_init_menu'],
-            ["Je souhaite substituer un produit.", 'show_category_menu'],
-            ["Retrouver mes produits substitués.", 'show_favorite_product']]
+            ("Bienvenue sur PurBeurre, veuillez choisir une option :", self.show_init_menu),
+            ("Substituer un produit.", self.show_category_menu),
+            ("Retrouver mes produits substitués.", self.show_favorite_product)]
         self.display_menu(choices)
 
     def show_category_menu(self):
@@ -60,10 +56,10 @@ class Interface:
             Displays menu with all cateogry product
         """
         choices = [
-            ["Sélectionnez la catégorie du produit :", 'show_category_menu']]
+            ("Sélectionnez la catégorie du produit :", self.show_category_menu)]
         for category in CATEGORIES:
-            choices.append([category, 'show_food_menu'])
-        self.display_menu(choices, 'category')
+            choices.append((category, self.show_food_menu))
+        self.display_menu(choices)
 
     def show_food_menu(self):
         """
@@ -73,9 +69,9 @@ class Interface:
         products = self.bdd.all_products_in_category(cat_id)
         self.products_info = products
         choices = [
-            ["Sélectionnez le produit souhaité :", 'show_food_menu']]
+            ("Sélectionnez le produit souhaité :", self.show_food_menu)]
         for product in products:
-            choices.append([product[0], 'show_result'])
+            choices.append((product[0], self.show_result))
         self.display_menu(choices)
 
     def show_result(self):
@@ -83,14 +79,14 @@ class Interface:
             Displays the search result 
             Results are already sorted by nova_score and nutrition_score
         """
-        print("Résultat :")
+        print("\n*********\nRésultat :\n")
         if self.option == 1:
             print("Aucun produit trouvé.")
             return None
 
         self.show_product(self.products_info[0][1], self.products_info)
 
-        save = input("Sauvegarder le résultat ? (o/n)").lower()
+        save = input("\n\nSauvegarder le résultat ? (o/n)").lower()
         if save == 'o':
             self.bdd.save_product(self.products_info[self.option-1][1], self.products_info[0][1])
 
@@ -107,7 +103,7 @@ class Interface:
         if not products_info:
             products_info = self.bdd.all_info_product(code_product)
 
-        print(f"{products_info[0][0]} (code {products_info[0][1]})\
+        print(f"Nom : {products_info[0][0]} (code {products_info[0][1]})\
             \nScore Nova : {products_info[0][2]},\
             \nNutri-Score : {products_info[0][3].upper()}\
             \nMagasin(s) : {products_info[0][4]}\
@@ -117,11 +113,12 @@ class Interface:
         """
             Display all favorite products and his substitute
         """
-        print("Produits favoris :")
+        print("\n*********\nProduits favoris :\n")
         for couple in self.bdd.all_favorite_product():
             self.show_product(couple[0])
-            print('Remplacé par :')
+            print("\n******\nRemplacé par :")
             self.show_product(couple[1])
+            print("\n")
 
     def check_error(self, answer, nb_choice):
         """
@@ -148,4 +145,5 @@ class Interface:
             *return: None
         """
         print("A bientôt sur PurBeurre.")
+        self.bdd.close_connection()
         sys.exit()

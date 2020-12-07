@@ -103,7 +103,7 @@ class Database:
             *rtype: bool
         """
 
-        print("Connexion à la base de données.")
+        #print("Connexion à la base de données.")
 
         try:
             self.cnx = mysql.connector.connect(
@@ -112,6 +112,7 @@ class Database:
                 password=self.bd_password
                 )
             self.cursor = self.cnx.cursor()
+            # other connect method
             #self.cnx = mysql.connector.connect(option_files='data/my.conf', option_groups=['connector_python'])
         except:
             print("Erreur lors de la connexion à la base de données.")
@@ -121,7 +122,7 @@ class Database:
 
     def close_connection(self):
         """ Close connection """
-        print("Déconnexion de la base de données.")
+        #print("Déconnexion de la base de données.")
         self.cursor.close()
         self.cnx.close()
 
@@ -220,7 +221,8 @@ class Database:
             INNER JOIN Assoc_product_category AS a\
                 ON a.code = p.code\
             WHERE a.id = %s\
-            ORDER BY nova_score, nutrition_score, code", (cat,))
+            ORDER BY nova_score, nutrition_score, code\
+            LIMIT 50", (cat,))
         return self.cursor.fetchall()
 
     def all_favorite_product(self):
