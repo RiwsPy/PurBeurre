@@ -7,7 +7,8 @@ Request and import data from Open Food Facts API
 import requests
 from data.product import Product
 from data.category import Category
-from api.locale import HEADERS, URL_SEARCH, CATEGORIES, PAYLOAD, FIELDS
+from api.locale import HEADERS, URL_SEARCH, CATEGORIES, PAYLOAD
+
 
 def call_api(bdd):
     """
@@ -18,7 +19,7 @@ def call_api(bdd):
         return: None
     """
 
-    headers={"User-Agent":HEADERS}
+    headers = {"User-Agent": HEADERS}
     code_set = set()
     print("Mise à jour de la base de données...")
     params = PAYLOAD.copy()
@@ -38,5 +39,3 @@ def call_api(bdd):
                 pro.cleaner(product_info)
                 pro.add()
                 bdd.add_assoc_pro_cat(pro, index)
-
-    bdd.create_index_nova_nutri_score()

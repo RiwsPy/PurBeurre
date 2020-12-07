@@ -5,6 +5,7 @@ Class Category
 
 """
 
+
 class Category:
     def __init__(self, bdd, category_name, index):
         """

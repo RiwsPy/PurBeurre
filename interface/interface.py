@@ -5,8 +5,8 @@ Contains all methods which allow the user to interact with PurBeurre interface
 
 """
 
-import sys
 from api.locale import URL_PRODUCT, CATEGORIES
+
 
 class Interface:
     def __init__(self, bdd):
@@ -22,19 +22,23 @@ class Interface:
 
     def display_menu(self, choices):
         """
-            Display header and choices to the PurBeurre's window then lauch the corresponding method
+            Display header and choices to the PurBeurre's window
+            then lauch the corresponding method
 
-            *param choices: [0] : text, [1] : method to apply if the option is chosen
+            *param choices:
+                [0] : text,
+                [1] : method to apply if the option is chosen
             *type choices: list(tuple)
             *return: None
         """
         choices.append(("Quitter PurBeurre", self.quit))
+
         for index, choice in enumerate(choices):
             if index:
                 print(f"{index}- {choice[0]}")
             else:
                 print("\n" + "*"*len(choice[0]))
-                print(choice[0] + "\n") #  header
+                print(choice[0] + "\n")  # header
 
         option = self.check_error(input(), len(choices)-1)
         self.option = option
@@ -46,9 +50,12 @@ class Interface:
             Displays the 'Welcome' menu
         """
         choices = [
-            ("Bienvenue sur PurBeurre, veuillez choisir une option :", self.show_init_menu),
-            ("Substituer un produit.", self.show_category_menu),
-            ("Retrouver mes produits substitués.", self.show_favorite_product)]
+            ("Bienvenue sur PurBeurre, veuillez choisir une option :",
+                self.show_init_menu),
+            ("Substituer un produit.",
+                self.show_category_menu),
+            ("Retrouver mes produits substitués.",
+                self.show_favorite_product)]
         self.display_menu(choices)
 
     def show_category_menu(self):
@@ -56,7 +63,8 @@ class Interface:
             Displays menu with all cateogry product
         """
         choices = [
-            ("Sélectionnez la catégorie du produit :", self.show_category_menu)]
+            ("Sélectionnez la catégorie du produit :",
+                self.show_category_menu)]
         for category in CATEGORIES:
             choices.append((category, self.show_food_menu))
         self.display_menu(choices)
@@ -69,14 +77,15 @@ class Interface:
         products = self.bdd.all_products_in_category(cat_id)
         self.products_info = products
         choices = [
-            ("Sélectionnez le produit souhaité :", self.show_food_menu)]
+            ("Sélectionnez le produit souhaité :",
+                self.show_food_menu)]
         for product in products:
             choices.append((product[0], self.show_result))
         self.display_menu(choices)
 
     def show_result(self):
         """
-            Displays the search result 
+            Displays the search result
             Results are already sorted by nova_score and nutrition_score
         """
         print("\n*********\nRésultat :\n")
@@ -88,9 +97,11 @@ class Interface:
 
         save = input("\n\nSauvegarder le résultat ? (o/n)").lower()
         if save == 'o':
-            self.bdd.save_product(self.products_info[self.option-1][1], self.products_info[0][1])
+            self.bdd.save_product(
+                self.products_info[self.option-1][1],
+                self.products_info[0][1])
 
-    def show_product(self, code_product, products_info = None):
+    def show_product(self, code_product, products_info=None):
         """
             Display all product informations and API URL
             Informations can be added directly in parameters (faster)
@@ -122,7 +133,8 @@ class Interface:
 
     def check_error(self, answer, nb_choice):
         """
-            Checks that the answer is indeed an integer and corresponds to a possible choice
+            Checks that the answer is indeed an integer
+            and corresponds to a possible choice
 
             *param answer: user answer put in the input
             *param nb_choice: number of possible responses
@@ -146,4 +158,3 @@ class Interface:
         """
         print("A bientôt sur PurBeurre.")
         self.bdd.close_connection()
-        sys.exit()

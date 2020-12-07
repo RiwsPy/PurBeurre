@@ -6,6 +6,7 @@
 
 from api.locale import FIELDS
 
+
 class Product:
     def __init__(self, bdd):
         """
@@ -35,7 +36,7 @@ class Product:
             *return: None
         """
         for field in FIELDS:
-            if not field in product:
+            if field not in product:
                 return None
             setattr(self, field, product[field])
 

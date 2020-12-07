@@ -12,24 +12,34 @@ Has a method to connect and request data from sql database
 
 import mysql.connector
 import os
-import settings
+import sys
+# import settings
+
 
 class Database:
     def __init__(self):
         """ For configurate and connect to Database, configure '.env' file """
-
         self.bd_name = os.getenv("DATABASE")
         self.bd_user = os.getenv("SQL_USER")
         self.bd_password = os.getenv("SQL_PASSWORD")
         self.cnx = None
         self.cursor = None
 
+    def open_connection(self):
+        """
+            Open connection to Database
+            return: True if the connection is ok, False otherwise
+            rtype: bool
+        """
+
         if self.init_connection():
             self.create_database()
-            """
-            self.clear_all_tables()
             self.execute_sql_file_in_database('sql/tables_queries.sql')
-            """
+            self.create_index_nova_nutri_score()
+            return True
+
+        self.close_connection()
+        return False
 
     def create_database(self):
         """
@@ -51,7 +61,7 @@ class Database:
         with open(filename, 'r') as bdd:
             sql_queries = bdd.read().split(';')
 
-        for query in sql_queries[:-1]: # last value is ignored
+        for query in sql_queries[:-1]:  # last value is ignored
             self.execute(query)
 
     def clear_all_tables(self):
@@ -63,7 +73,7 @@ class Database:
         self.execute("DROP TABLE IF EXISTS Product")
         self.execute("DROP TABLE IF EXISTS Category")
 
-    def execute(self, query, data = None):
+    def execute(self, query, data=None):
         """
             Execute query in Database with data (facultative)
             See mysql.connector.connect.execute for more informations
@@ -76,8 +86,10 @@ class Database:
             *return: True if the query is valid, False otherwise
             *rtype: bool
         """
-        # you must commit the data after a sequence of INSERT, DELETE, and UPDATE statements.
-        # See : https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
+        # "you must commit the data after a sequence of
+        # INSERT, DELETE, and UPDATE statements."
+        # For more informations :
+        # https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
 
         need_commit = False
         first_statement = query.split(" ")[0].upper()
@@ -97,13 +109,13 @@ class Database:
         return True
 
     def init_connection(self):
-        """ Open connection 
-        
+        """ Open connection
+
             *return: True if the connection is ok, False otherwise
             *rtype: bool
         """
 
-        #print("Connexion à la base de données.")
+        # print("Connexion à la base de données.")
 
         try:
             self.cnx = mysql.connector.connect(
@@ -113,32 +125,45 @@ class Database:
                 )
             self.cursor = self.cnx.cursor()
             # other connect method
-            #self.cnx = mysql.connector.connect(option_files='data/my.conf', option_groups=['connector_python'])
-        except:
+            # self.cnx = mysql.connector.connect(option_files='data/my.conf',
+            # option_groups=['connector_python'])
+        except mysql.connector.Error as error:
             print("Erreur lors de la connexion à la base de données.")
+            print(error)
             return False
 
         return True
 
     def close_connection(self):
         """ Close connection """
-        #print("Déconnexion de la base de données.")
+        # print("Déconnexion de la base de données.")
         self.cursor.close()
         self.cnx.close()
+        sys.exit()
 
     def add_product(self, product):
         """
             Add a product in Product table
 
             *param product: list with 6 parameters :
-                code, product_name, nova_score, nutrition_score, store_name, categories
+                code, product_name, nova_score, nutrition_score,
+                store_name, categories
             *type product: list
         """
 
         add_line = "INSERT INTO Product \
             (code, product_name, nova_score, nutrition_score, store_name) \
-            VALUES (%s, %s, %s, %s, %s)"
-        data_line = (product[0], product[1], product[2], product[3], product[4])
+            VALUES (%s, %s, %s, %s, %s)\
+            ON DUPLICATE KEY UPDATE\
+                code = %s,\
+                product_name = %s,\
+                nova_score = %s,\
+                nutrition_score = %s,\
+                store_name = %s"
+
+        data_line = (
+            product[0], product[1], product[2], product[3], product[4],
+            product[0], product[1], product[2], product[3], product[4])
         self.execute(add_line, data_line)
 
     def add_category(self, name, index):
@@ -150,9 +175,11 @@ class Database:
             *type name: str
             *type index: int
         """
-        add_line = "INSERT INTO Category (id, category_name) \
-            VALUES (%s, %s)"
-        data_line = (index, name[:100])
+        add_line = "INSERT INTO Category (id, category_name)\
+            VALUES (%s, %s)\
+            ON DUPLICATE KEY UPDATE\
+            id = %s, category_name = %s"
+        data_line = (index, name[:100], index, name[:100])
         self.execute(add_line, data_line)
 
     def category_name_to_id(self, name):
@@ -194,11 +221,12 @@ class Database:
 
     def all_info_product(self, code_product):
         """
-            Select and return product informations stored in Product table for one product
+            Select and return product informations stored in Product table
+            for one product
 
             *param code_product: product code to search
             *type code_product: int
-            *return: product_name, code, nova_score, nutrition_score, store_name of the product
+            *return: 5 product informations
             *rtype: tuple
         """
         add_line = "SELECT product_name, code, nova_score, nutrition_score, store_name\
@@ -227,7 +255,8 @@ class Database:
 
     def all_favorite_product(self):
         """
-            Select and return all code product and code of their substitute product
+            Select and return all code product
+            and code of their substitute product
 
             *rtype: tuple(tuple)
         """
@@ -237,16 +266,19 @@ class Database:
 
     def save_product(self, product_code, substitute_code):
         """
-            Save in Favorite_product table a product code and the code of this subtitute product
+            Save in Favorite_product table a product code
+            and the code of this subtitute product
 
             *param product_code: code product
             *param substitute_code: code of the subtitute product
             *type product_code: int
             *type substitute_code: int
         """
-        add_line = "INSERT INTO Favorite_product (code, substitute_code) VALUES (%s, %s)"
-        data_line = (product_code, substitute_code)
+        add_line = "\
+            INSERT INTO Favorite_product (code, substitute_code)\
+            VALUES (%s, %s)\
+            ON DUPLICATE KEY UPDATE\
+                code = %s, substitute_code = %s"
+        data_line = (product_code, substitute_code,
+                     product_code, substitute_code)
         self.execute(add_line, data_line)
-
-if __name__ == "__main__":
-    conn = Database()
