@@ -34,6 +34,7 @@ class Database:
 
         if self.init_connection():
             self.create_database()
+            #self.drop_all_tables()
             self.execute_sql_file_in_database('sql/tables_queries.sql')
             self.create_index_nova_nutri_score()
             return True
@@ -64,9 +65,9 @@ class Database:
         for query in sql_queries[:-1]:  # last value is ignored
             self.execute(query)
 
-    def clear_all_tables(self):
+    def drop_all_tables(self):
         """
-            Drop all table in database
+            Drop all tables in database
         """
         self.execute("DROP TABLE IF EXISTS Assoc_product_category")
         self.execute("DROP TABLE IF EXISTS Favorite_product")
@@ -135,7 +136,7 @@ class Database:
         return True
 
     def close_connection(self):
-        """ Close connection """
+        """ Close connection and app exit """
         # print("Déconnexion de la base de données.")
         self.cursor.close()
         self.cnx.close()
@@ -143,7 +144,7 @@ class Database:
 
     def add_product(self, product):
         """
-            Add a product in Product table
+            Add or update a product in Product table
 
             *param product: list with 6 parameters :
                 code, product_name, nova_score, nutrition_score,
@@ -155,7 +156,6 @@ class Database:
             (code, product_name, nova_score, nutrition_score, store_name) \
             VALUES (%s, %s, %s, %s, %s)\
             ON DUPLICATE KEY UPDATE\
-                code = %s,\
                 product_name = %s,\
                 nova_score = %s,\
                 nutrition_score = %s,\
@@ -163,12 +163,12 @@ class Database:
 
         data_line = (
             product[0], product[1], product[2], product[3], product[4],
-            product[0], product[1], product[2], product[3], product[4])
+            product[1], product[2], product[3], product[4])
         self.execute(add_line, data_line)
 
     def add_category(self, name, index):
         """
-            Add a category in Category table
+            Add or update a category in Category table
 
             *param name: category name
             *param index: category index
@@ -178,8 +178,8 @@ class Database:
         add_line = "INSERT INTO Category (id, category_name)\
             VALUES (%s, %s)\
             ON DUPLICATE KEY UPDATE\
-            id = %s, category_name = %s"
-        data_line = (index, name[:100], index, name[:100])
+                category_name = %s"
+        data_line = (index, name[:100], name[:100])
         self.execute(add_line, data_line)
 
     def category_name_to_id(self, name):
@@ -264,21 +264,24 @@ class Database:
         self.execute(add_line)
         return self.cursor.fetchall()
 
-    def save_product(self, product_code, substitute_code):
+    def save_product(self, product_code, category_id, substitute_code):
         """
             Save in Favorite_product table a product code
             and the code of this subtitute product
 
             *param product_code: code product
+            *param category_id: category id
             *param substitute_code: code of the subtitute product
             *type product_code: int
+            *type category_id: int
             *type substitute_code: int
         """
         add_line = "\
-            INSERT INTO Favorite_product (code, substitute_code)\
-            VALUES (%s, %s)\
+            INSERT INTO Favorite_product\
+                (code, category_id, substitute_code)\
+            VALUES (%s, %s, %s)\
             ON DUPLICATE KEY UPDATE\
-                code = %s, substitute_code = %s"
-        data_line = (product_code, substitute_code,
-                     product_code, substitute_code)
+                substitute_code = %s"
+        data_line = (product_code, category_id, substitute_code,
+                     substitute_code)
         self.execute(add_line, data_line)

@@ -30,11 +30,17 @@ CREATE TABLE IF NOT EXISTS Assoc_product_category(
 
 CREATE TABLE IF NOT EXISTS Favorite_product(
     code VARCHAR(13) NOT NULL,
+    category_id TINYINT UNSIGNED NOT NULL,
     substitute_code VARCHAR(13) NOT NULL,
-    PRIMARY KEY(code),
+    CONSTRAINT uq_code_cat UNIQUE(code, category_id),
     CONSTRAINT fk_code1
         FOREIGN KEY (code)
         REFERENCES Product(code)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_cat_id
+        FOREIGN KEY (category_id)
+        REFERENCES Category(id)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     CONSTRAINT fk_code2
