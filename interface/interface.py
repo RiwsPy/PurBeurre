@@ -40,9 +40,8 @@ class Interface:
                 print("\n" + "*"*len(choice[0]))
                 print(choice[0] + "\n")  # header
 
-        option = self.check_error(input(), len(choices)-1)
+        option = self.check_error(input(), index)
         self.option = option
-
         choices[option][1]()
 
     def show_init_menu(self):
@@ -73,7 +72,12 @@ class Interface:
         """
             Displays menu with all products in the category chosen previously
         """
-        cat_id = self.option-1
+        if self.category is None:
+            cat_id = self.option-1
+            self.category = self.option
+        else:  # rollback
+            cat_id = self.category-1
+
         products = self.bdd.all_products_in_category(cat_id)
         self.products_info = products
         choices = [
@@ -99,6 +103,7 @@ class Interface:
         if save == 'o':
             self.bdd.save_product(
                 self.products_info[self.option-1][1],
+                self.category,
                 self.products_info[0][1])
 
     def show_product(self, code_product, products_info=None):
