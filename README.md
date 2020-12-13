@@ -1,8 +1,4 @@
-# Projet PurBeurre
-
-this project is under construction
-
-
+# PurBeurre Project
 
 About this project :
 PurBeurre is an application who promotes healthier eating.
@@ -35,14 +31,45 @@ Files:
 
 
 # Prerequisites:
-* Python (URL : ???)
-* MySQL (URL : ???)
+* Python3 (https://www.python.org/downloads/)
+* MySQL (https://www.mysql.com/fr/downloads/)
 
-# Installation:
+__A MySQL user with permission is needed.__
+See https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+
+
+# Program flow:
+* Download the program
 ```
 git clone https://github.com/RiwsPy/PurBeurre.git
-cd PurBeurre/
-pipenv install
-pipenv shell
-python3 main.py
 ```
+* Open _PurBeurre_ folder
+* Rename _.env.sample_ in _.env_
+* Complete this file to permit a connection between the program and the locale database
+* Launch program
+    __Launch with database update__ (recommended for first use)
+    ```
+    pipenv install
+    pipenv shell
+    python3 main.py -uDB
+    ```
+    Your database will be completed or updated from OpenFoodFacts, its may take few seconds.
+
+    __Launch without update__
+    ```
+    pipenv install
+    pipenv shell
+    python3 main.py
+    ```
+* Choose an option
+    1. Find a product to substitute an other ?
+        * Select product category
+            * Select your product
+                * Save (or not) product and the one proposed by PurBeurre
+            * Back to parent folder
+            * Quit PurBeurre
+        * Back to parent folder
+        * Quit PurBeurre
+    2. Find your products previously saved
+        * Back to parent folder
+    3. Quit PurBeurre
