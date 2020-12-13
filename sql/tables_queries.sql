@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Favorite_product(
     code VARCHAR(13) NOT NULL,
     category_id TINYINT UNSIGNED NOT NULL,
     substitute_code VARCHAR(13) NOT NULL,
-    CONSTRAINT uq_code_cat UNIQUE(code, category_id),
+    CONSTRAINT uq_code_cat UNIQUE(code, category_id, substitute_code),
     CONSTRAINT fk_code1
         FOREIGN KEY (code)
         REFERENCES Product(code)

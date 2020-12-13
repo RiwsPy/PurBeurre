@@ -14,11 +14,14 @@ class Interface:
             Interface initialisation
         """
         self.bdd = bdd
+        self.initialize()
+        self.show_init_menu()
+
+    def initialize(self):
         self.category = None
         self.product = None
         self.option = 0
         self.products_info = []
-        self.show_init_menu()
 
     def display_menu(self, choices):
         """
@@ -48,6 +51,7 @@ class Interface:
         """
             Displays the 'Welcome' menu
         """
+        self.initialize()
         choices = [
             ("Bienvenue sur PurBeurre, veuillez choisir une option :",
                 self.show_init_menu),
@@ -61,11 +65,13 @@ class Interface:
         """
             Displays menu with all cateogry product
         """
+        self.category = None
         choices = [
             ("Sélectionnez la catégorie du produit :",
                 self.show_category_menu)]
         for category in CATEGORIES:
             choices.append((category, self.show_food_menu))
+        choices.append(("Revenir au menu précédent", self.show_init_menu))
         self.display_menu(choices)
 
     def show_food_menu(self):
@@ -73,18 +79,23 @@ class Interface:
             Displays menu with all products in the category chosen previously
         """
         if self.category is None:
-            cat_id = self.option-1
-            self.category = self.option
-        else:  # rollback
-            cat_id = self.category-1
+            self.category = self.option-1
+        cat_id = self.category
 
         products = self.bdd.all_products_in_category(cat_id)
+        if not products:
+            print("\nOups ! Il n'y aucun produit qui correspond à ces critères !")
+            self.wait()
+            self.show_init_menu()
+            return None
+
         self.products_info = products
         choices = [
             ("Sélectionnez le produit souhaité :",
                 self.show_food_menu)]
         for product in products:
             choices.append((product[0], self.show_result))
+        choices.append(("Revenir au menu précédent", self.show_category_menu))
         self.display_menu(choices)
 
     def show_result(self):
@@ -94,17 +105,20 @@ class Interface:
         """
         print("\n*********\nRésultat :\n")
         if self.option == 1:
-            print("Aucun produit trouvé.")
-            return None
+            print("Aucun substitut trouvé !\
+                Ce produit est le plus que nous ayons dans cette catégorie.")
+        else:
+            self.show_product(self.products_info[0][1], self.products_info)
 
-        self.show_product(self.products_info[0][1], self.products_info)
-
-        save = input("\n\nSauvegarder le résultat ? (o/n)").lower()
-        if save == 'o':
-            self.bdd.save_product(
-                self.products_info[self.option-1][1],
-                self.category,
-                self.products_info[0][1])
+            save = input("\n\nSauvegarder le résultat ? (o/n)").lower()
+            if save == 'o':
+                self.bdd.save_product(
+                    self.products_info[self.option-1][1],
+                    self.category,
+                    self.products_info[0][1])
+                print("Produit sauvegardé.")
+        self.wait()
+        self.show_init_menu()
 
     def show_product(self, code_product, products_info=None):
         """
@@ -129,12 +143,19 @@ class Interface:
         """
             Display all favorite products and his substitute
         """
-        print("\n*********\nProduits favoris :\n")
-        for couple in self.bdd.all_favorite_product():
-            self.show_product(couple[0])
-            print("\n******\nRemplacé par :")
-            self.show_product(couple[1])
-            print("\n")
+        info = self.bdd.all_favorite_product()
+        if info:
+            print("\n*********\nProduits favoris :")
+            for code, category, substitute_code in info:
+                print(f"\nCatégorie {self.bdd.category_id_to_name(category)}")
+                self.show_product(code)
+                print("\n******\nRemplacé par :")
+                self.show_product(substitute_code)
+                self.wait()
+        else:
+            print("Aucun produit trouvé !")
+            self.wait()
+        self.show_init_menu()
 
     def check_error(self, answer, nb_choice):
         """
@@ -154,6 +175,12 @@ class Interface:
         if answer < 1 or answer > nb_choice:
             return 0
         return answer
+
+    def wait(self):
+        """
+            Wait a keyboard event
+        """
+        input('\nAppuyez sur une touche pour continuer.')
 
     def quit(self):
         """

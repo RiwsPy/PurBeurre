@@ -196,6 +196,20 @@ class Database:
         self.execute(add_line, data_line)
         return self.cursor.fetchall()
 
+    def category_id_to_name(self, id):
+        """
+            Selects the name category by its id
+
+            *param id: category id
+            *type id: int
+            *return: query return
+            *rtype: tuple
+        """
+        add_line = "SELECT category_name FROM Category WHERE id = %s"
+        data_line = (id,)
+        self.execute(add_line, data_line)
+        return self.cursor.fetchall()[0][0]
+
     def add_assoc_pro_cat(self, product, cat_id):
         """
             Insert in table Assoc_product_category the followed parameters
@@ -260,7 +274,7 @@ class Database:
 
             *rtype: tuple(tuple)
         """
-        add_line = "SELECT code, substitute_code FROM Favorite_product"
+        add_line = "SELECT code, category_id, substitute_code FROM Favorite_product"
         self.execute(add_line)
         return self.cursor.fetchall()
 
@@ -276,8 +290,7 @@ class Database:
             *type category_id: int
             *type substitute_code: int
         """
-        add_line = "\
-            INSERT INTO Favorite_product\
+        add_line = "INSERT INTO Favorite_product\
                 (code, category_id, substitute_code)\
             VALUES (%s, %s, %s)\
             ON DUPLICATE KEY UPDATE\
