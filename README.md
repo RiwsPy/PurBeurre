@@ -11,7 +11,7 @@ For this, it is based on two criteria:
     from A - dark green (good) to E - dark orange (bad)
 
 
-Files:
+# Files:
 - api/
     - locale.py (contains all constants for API)
     - openfoodfacts.py (contains requests to API)
@@ -35,18 +35,20 @@ Files:
 * MySQL (https://www.mysql.com/fr/downloads/)
 
 __A MySQL user with permission is needed.__
-See https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+
+See also https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
 
 
 # Program flow:
-* Download the program
+* Download PurBeurre
 ```
 git clone https://github.com/RiwsPy/PurBeurre.git
 ```
 * Open _PurBeurre_ folder
 * Rename _.env.sample_ in _.env_
 * Complete this file to permit a connection between the program and the locale database
-* Launch program
+* Launch program, execute this in the PurBeurre folder
+
     __Launch with database update__ (recommended for first use)
     ```
     pipenv install
@@ -62,7 +64,7 @@ git clone https://github.com/RiwsPy/PurBeurre.git
     python3 main.py
     ```
 * Choose an option
-    1. Find a product to substitute an other ?
+    1. Find a product to substitute an other
         * Select product category
             * Select your product
                 * Save (or not) product and the one proposed by PurBeurre
