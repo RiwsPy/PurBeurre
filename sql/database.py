@@ -34,7 +34,7 @@ class Database:
 
         if self.init_connection():
             self.create_database()
-            #self.drop_all_tables()
+            # self.drop_all_tables()
             self.execute_sql_file_in_database('sql/tables_queries.sql')
             self.create_index_nova_nutri_score()
             return True
@@ -182,20 +182,6 @@ class Database:
         data_line = (index, name[:100], name[:100])
         self.execute(add_line, data_line)
 
-    def category_name_to_id(self, name):
-        """
-            Selects the id category by its name
-
-            *param name: category name
-            *type name: str
-            *return: query return
-            *rtype: tuple
-        """
-        add_line = "SELECT id FROM Category WHERE category_name = %s"
-        data_line = (name,)
-        self.execute(add_line, data_line)
-        return self.cursor.fetchall()
-
     def category_id_to_name(self, id):
         """
             Selects the name category by its id
@@ -208,7 +194,7 @@ class Database:
         add_line = "SELECT category_name FROM Category WHERE id = %s"
         data_line = (id,)
         self.execute(add_line, data_line)
-        return self.cursor.fetchall()[0][0]
+        return self.cursor.fetchone()[0]
 
     def add_assoc_pro_cat(self, product, cat_id):
         """
@@ -274,7 +260,8 @@ class Database:
 
             *rtype: tuple(tuple)
         """
-        add_line = "SELECT code, category_id, substitute_code FROM Favorite_product"
+        add_line = "SELECT code, category_id, substitute_code\
+                    FROM Favorite_product"
         self.execute(add_line)
         return self.cursor.fetchall()
 

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS Product(
 CREATE TABLE IF NOT EXISTS Assoc_product_category(
     code VARCHAR(13) NOT NULL,
     id TINYINT UNSIGNED NOT NULL,
+    CONSTRAINT uq_code_cat UNIQUE (code, id),
     CONSTRAINT fk_code
         FOREIGN KEY (code)
         REFERENCES Product(code)
@@ -29,10 +30,12 @@ CREATE TABLE IF NOT EXISTS Assoc_product_category(
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS Favorite_product(
+    id SMALLINT NOT NULL AUTO_INCREMENT,
     code VARCHAR(13) NOT NULL,
     category_id TINYINT UNSIGNED NOT NULL,
     substitute_code VARCHAR(13) NOT NULL,
-    CONSTRAINT uq_code_cat UNIQUE(code, category_id, substitute_code),
+    PRIMARY KEY(id),
+    CONSTRAINT uq_favorite UNIQUE(code, category_id, substitute_code),
     CONSTRAINT fk_code1
         FOREIGN KEY (code)
         REFERENCES Product(code)

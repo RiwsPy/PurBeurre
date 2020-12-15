@@ -18,15 +18,24 @@ class Interface:
         self.show_init_menu()
 
     def initialize(self):
-        self.category = None
-        self.product = None
-        self.option = 0
+        """
+            Interface attributes initialisation
+        """
+        self.category = None  # user category choice
+        self.option = 0  # user choice
         self.products_info = []
 
     def display_menu(self, choices):
         """
             Display header and choices to the PurBeurre's window
             then lauch the corresponding method
+            The default method to apply is the header option:
+
+            choices exemple:
+            (('Header - Welcome !', default_method),
+            ('Option01', option01_method),
+            ('Option02', option02_method),
+            ...)
 
             *param choices:
                 [0] : text,
@@ -84,7 +93,7 @@ class Interface:
 
         products = self.bdd.all_products_in_category(cat_id)
         if not products:
-            print("\nOups ! Il n'y aucun produit qui correspond à ces critères !")
+            print("\nOups ! Aucun produit ne correspond à ces critères.")
             self.wait()
             self.show_init_menu()
             return None
@@ -134,7 +143,7 @@ class Interface:
             products_info = self.bdd.all_info_product(code_product)
 
         print(f"Nom : {products_info[0][0]} (code {products_info[0][1]})\
-            \nScore Nova : {products_info[0][2]},\
+            \nScore Nova : {products_info[0][2]}\
             \nNutri-Score : {products_info[0][3].upper()}\
             \nMagasin(s) : {products_info[0][4]}\
             \nLien OFF : {URL_PRODUCT}/{products_info[0][1]}")

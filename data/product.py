@@ -16,6 +16,7 @@ class Product:
             *type bdd: database.Database
         """
         self.bdd = bdd
+        self.is_clean = False
         for field in FIELDS:
             setattr(self, field, None)
 
@@ -39,13 +40,7 @@ class Product:
             if field not in product:
                 return None
             setattr(self, field, product[field])
-
-    @property
-    def is_clean(self):
-        for field in FIELDS:
-            if not getattr(self, field):
-                return False
-        return True
+        self.is_clean = True
 
     @property
     def list_field(self):
@@ -54,8 +49,5 @@ class Product:
 
             *rtype: list
         """
-        result_list = []
-        for field in FIELDS:
-            result_list.append(getattr(self, field))
 
-        return result_list
+        return [getattr(self, field) for field in FIELDS]
